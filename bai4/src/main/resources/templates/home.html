@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Trang chủ - Danh sách học phần</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="container py-4">
+
+    <div th:if="${param.logout}" class="alert alert-success alert-dismissible fade show" role="alert">
+        Bạn đã đăng xuất thành công.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Danh sách học phần</h2>
+            <p class="text-muted mb-0">Mỗi trang hiển thị 5 học phần</p>
+        </div>
+
+            <div th:if="${isAdmin}" class="mt-3 mt-md-0">
+                <a th:href="@{/admin/courses/create}" class="btn btn-primary">+ Thêm học phần</a>
+            </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="row g-4" th:if="${coursePage.totalElements > 0}">
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3" th:each="course : ${coursePage.content}">
+            <div class="card h-100 shadow-sm border-0 rounded-4">
+                <img th:src="${course.image != null && !course.image.isEmpty()} ? @{'/uploads/' + ${course.image}} : 'https://via.placeholder.com/600x350?text=No+Image'"
+                     class="card-img-top rounded-top-4"
+                     alt="Course image"
+                     style="height: 220px; object-fit: cover;">
+
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title fw-bold" th:text="${course.name}">Tên học phần</h5>
+
+                    <p class="mb-2">
+                        <span class="badge bg-primary" th:text="${course.credits + ' tín chỉ'}">3 tín chỉ</span>
+                    </p>
+
+                    <p class="card-text mb-2">
+                        <strong>Giảng viên:</strong>
+                        <span th:text="${course.lecturer}">Nguyễn Văn A</span>
+                    </p>
+
+                    <p class="card-text text-muted mb-3">
+                        <strong>Danh mục:</strong>
+                        <span th:text="${course.category != null ? course.category.name : 'Chưa có'}">CNTT</span>
+                    </p>
+
+                    <div class="mt-auto d-grid gap-2">
+                        <form th:if="${isStudent}"
+                              th:action="@{/enroll/{courseId}(courseId=${course.id})}" method="post">
+                            <button type="submit" class="btn btn-success w-100">Enroll</button>
+                        </form>
+
+                        <a th:if="${!isAuthenticated}" th:href="@{/login}" class="btn btn-outline-secondary">
+                            Đăng nhập để đăng ký
+                        </a>
+
+                        <div th:if="${isAdmin}" class="d-flex gap-2">
+                            <a th:href="@{/admin/courses/edit/{id}(id=${course.id})}" class="btn btn-warning w-50">Edit</a>
+                            <a th:href="@{/admin/courses/delete/{id}(id=${course.id})}"
+                               class="btn btn-danger w-50"
+                               onclick="return confirm('Bạn có chắc muốn xóa học phần này?')">Delete</a>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${coursePage.totalElements == 0}" class="text-center py-5">
+        <h5 class="text-muted">Không tìm thấy học phần nào</h5>
+    </div>
+
+    <nav class="mt-4" th:if="${coursePage.totalPages > 0}">
+        <ul class="pagination justify-content-center flex-wrap">
+            <li class="page-item" th:classappend="${coursePage.first} ? 'disabled'">
+                <a class="page-link"
+                   th:href="@{/home(page=${coursePage.number - 1}, keyword=${keyword})}">Previous</a>
+            </li>
+
+            <li class="page-item"
+                th:each="i : ${#numbers.sequence(0, coursePage.totalPages - 1)}"
+                th:classappend="${coursePage.number == i} ? 'active'">
+                <a class="page-link"
+                   th:href="@{/home(page=${i}, keyword=${keyword})}"
+                   th:text="${i + 1}">1</a>
+            </li>
+
+            <li class="page-item" th:classappend="${coursePage.last} ? 'disabled'">
+                <a class="page-link"
+                   th:href="@{/home(page=${coursePage.number + 1}, keyword=${keyword})}">Next</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
